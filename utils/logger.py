@@ -15,9 +15,13 @@ class Logger:
             # Prevent logging from propagating to the root logger
             logger.propagate = 0
 
+            # Create logs directory if doesn't exist
+            if not os.path.exists(log_directory):
+                os.makedirs(log_directory)
+
             # Create file handler
             file_handler = logging.FileHandler(log_path)
-            file_handler.setLevel(logging.INFO)
+            file_handler.setLevel(logging.DEBUG)
 
             # Create formatter and add it to the handlers
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
