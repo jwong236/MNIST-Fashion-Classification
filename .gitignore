@@ -1,0 +1,14 @@
+.idea/
+.vscode/
+*.exe
+*.dll
+*.so
+*.dylib
+*.log
+*.csv
+*.png
+*.jpg
+*~
+
+# Jacob's Virtual Environment:
+myenv/
