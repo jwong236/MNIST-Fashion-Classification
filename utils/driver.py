@@ -1,6 +1,6 @@
 import configparser
 
-from tensorflow.keras.datasets import fashion_mnist
+from keras.datasets import fashion_mnist
 
 from utils.logger import Logger
 from utils.preprocessor import Preprocessor
@@ -27,25 +27,28 @@ class Driver:
 
     def load_preprocess_split_data(self):
         # Load Data: Load MNIST data
-        self.logger.info(f"Loading Data...")
-        print(f"Loading Data...")
+        self.logger.info(f"Loading Data...\n")
+        print(f"Loading Data...\n")
         (original_X_training_data, original_y_training_data), (original_X_testing_data, original_y_testing_data) = fashion_mnist.load_data()
 
         # Preprocess Data
-
         # Instantiate preprocessor
         preprocessor = Preprocessor(self.config, Logger.get_logger('preprocessor.log'))
 
-        # Preprocess data
-        self.logger.info(f"Preprocessing Data...")
-        print(f"Preprocessing Data...")
+        # Preprocess training and validation data
+        self.logger.info(f"Preprocessing training and validation data...")
+        print(f"Preprocessing training and validation data...")
         training_and_validation_data = preprocessor.preprocess(original_X_training_data, original_y_training_data)
+
+        # Preprocess testing data
+        self.logger.info(f"Preprocessing testing data...")
+        print(f"Preprocessing testing data...")
         self.testing_data = preprocessor.preprocess(original_X_testing_data, original_y_testing_data)
 
         # Split training data into training and validation data
-        self.logger.info(f"Splitting Data...")
-        print(f"Splitting Data...")
-        self.training_data, self.validation_data = preprocessor.split_data(training_and_validation_data)
+        self.logger.info(f"Splitting training data...")
+        print(f"Splitting training data...")
+        self.training_data, self.validation_data = preprocessor.split_data(training_and_validation_data[0], training_and_validation_data[1])
 
 
     def create_knn_model(self, training_data, validation_data):
