@@ -20,7 +20,7 @@ class Logger:
                 os.makedirs(log_directory)
 
             # Create file handler
-            file_handler = logging.FileHandler(log_path)
+            file_handler = logging.FileHandler(log_path, mode = 'w')
             file_handler.setLevel(logging.DEBUG)
 
             # Create formatter and add it to the handlers
