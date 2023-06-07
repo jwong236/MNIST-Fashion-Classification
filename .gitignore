@@ -10,8 +10,8 @@
 *.jpg
 *~
 models/knn/__pycache__/
-models/logistic_regression/logistic_regression_model.py
-models/neural_network/neural_network_model.py
+models/logistic_regression/__pycache__/
+models/neural_network/__pycache__/
 utils/__pycache__/
 
 # Jacob's Virtual Environment:
