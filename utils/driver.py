@@ -45,7 +45,8 @@ class Driver:
         # Split training data into training and validation data
         self.logger.info(f"Splitting Data...")
         print(f"Splitting Data...")
-        self.training_data, self.validation_data = preprocessor.split_data(training_and_validation_data)
+        self.training_data, self.validation_data = preprocessor.split_data(training_and_validation_data, self.config.getfloat('PREPROCESSING', 'training_split'), self.config.getfloat('PREPROCESSING', 'validation_split'))
+
 
     def create_knn_model(self, training_data, validation_data):
         try:
