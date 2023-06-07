@@ -1,6 +1,9 @@
 from utils.abstract_base_model import AbstractBaseModel
 
 class NeuralNetworkModel(AbstractBaseModel):
+    def __init__(self, config, training_data, validation_data, logger):
+        super().__init__(config, training_data, validation_data, logger)
+        
     def initialize_model(self):
         pass
 
