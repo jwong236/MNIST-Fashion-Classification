@@ -1,17 +1,19 @@
 from utils.abstract_base_model import AbstractBaseModel
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 import numpy as np
+import matplotlib.pyplot as plt
 
 class KNNModel(AbstractBaseModel):
     def __init__(self, config, training_data, validation_data, logger):
         super().__init__(config, training_data, validation_data, logger)
 
         self.k = int()
-        self.k_max = 21
+        self.k_max = 23
         self.labels = None
 
         self.predict_counter = int()
         self.total_points = len(self.validation_data[0])
+        self.k_metrics = {}
 
     def initialize_model(self):
         """
@@ -30,67 +32,175 @@ class KNNModel(AbstractBaseModel):
         """
         self.labels = self.training_data[1]
         self.logger.info("Starting model training and validation.")
-
-        best_k = None
-        best_accuracy = -1
-        self.logger.info(f"Initial best_k: {best_k}, best_accuracy: {best_accuracy}")
-
-        for k in range(1, self.k_max):
+        for k in range(1, self.k_max + 1, 2):
             self.k = k
-            self.logger.info(f"Training with k set to: {self.k}")
             self.predict_counter = 0
-            predictions = [self.predict(point) for point in self.validation_data[0]]
-            accuracy = accuracy_score(self.validation_data[1], predictions)
-            self.logger.info(f"Validation accuracy for k={k}: {accuracy}")
 
-            if accuracy > best_accuracy:
-                best_accuracy = accuracy
-                best_k = k
-                self.logger.info(f"New best k found: {best_k} with accuracy: {best_accuracy}")
-
-        self.k = best_k
-        self.logger.info(f"Training completed. Best k: {self.k} with best accuracy: {best_accuracy}")
+            self.logger.info(f"Training with k set to: {self.k}")
+            validation_predictions = []
+            for i, point in enumerate(self.validation_data[0]):
+                prediction = self.predict(point)
+                validation_predictions.append(prediction)
+                self.logger.info(f"[k = {self.k}] -> point {i+1}/{self.total_points}: Predicted label: {prediction} for validation data")
+            validation_accuracy = accuracy_score(self.validation_data[1], validation_predictions)
+            validation_error = 1 - validation_accuracy
+                
+            self.k_metrics[k] = {"validation_error": validation_error}
+            self.logger.info(f"Validation error for k={k}: {validation_error}")
+        self.k = min(self.k_metrics, key=lambda k: self.k_metrics[k]['validation_error'])
+        self.logger.info(f"Training and validation phase completed. Best k found: {self.k} with validation error: {self.k_metrics[self.k]['validation_error']}")
+        print(f"Training and validation phase completed. Best k found: {self.k} with validation error: {self.k_metrics[self.k]['validation_error']}")
 
     def predict(self, point):
         """
         Predict the label of a single point, using the trained model.
         """
-        self.predict_counter += 1
-        self.logger.info(f"[k = {self.k}] -> point {self.predict_counter}/{self.total_points}: Predicting...")
         distances = np.array([self.euclidean_distance(point, train_point) for train_point in self.training_data[0]])
         nearest_indices = distances.argsort()[:self.k]
         nearest_labels = self.labels[nearest_indices]
         counts = np.bincount(nearest_labels)
         prediction = np.argmax(counts)
-        self.logger.info(f"[k = {self.k}] -> point {self.predict_counter}/{self.total_points}: Predicted label: {prediction}")
         return prediction
+
 
     def test_model(self, test_data):
         """
         Test model with test_data, returning classification results
         """
-        self.logger.info("Testing model on test data.")
-        predictions = np.array([self.predict(point) for point in test_data[0]])
-        self.logger.info("Model testing completed.")
-        return {"features": test_data[0], "labels": predictions}
+        self.predict_counter = 0
+        total_test_points = len(test_data[0])
+        self.logger.info(f"Starting testing phase...")
+        print(f"Starting testing phase...")
+        predictions = []
+        for i, point in enumerate(test_data[0]):
+            prediction = self.predict(point)
+            predictions.append(prediction)
+            self.logger.info(f"[k = {self.k}] -> point {i+1}/{total_test_points}: Predicted label: {prediction} for test data")
+        test_accuracy = accuracy_score(test_data[1], predictions)
+        test_error = 1 - test_accuracy
+
+        self.k_metrics[self.k]["test_error"] = test_error
+        self.logger.info("Testing phase completed.")
+        print("Testing phase completed.")
+        return {"features": test_data[0], "label_predictions": predictions, "true_labels": test_data[1]}
+
 
     def evaluate_model(self, test_data_results):
         """
-        Return confusion matrix of results of test_model
+        Return figures of error rate and accuracy for each value of k, and the confusion matrix of results of test_model
         """
-        self.logger.info("Evaluating model.")
-        # Implement confusion matrix calculation here, depending on how you want it.
+        self.logger.info(f"Evaluating model.")
+        print(f"Evaluating model.")
 
-    def print_results(self):
-        """
-        Print confusion matrix
-        """
-        self.logger.info("Printing model results.")
-        # Implement print functionality here
+        # Confusion matrix
+        true_labels = test_data_results['true_labels']
+        predicted_labels = test_data_results['label_predictions']
+        cm = confusion_matrix(true_labels, predicted_labels)
 
-    def report_results(self):
+        # Error figure
+        k_values = list(self.k_metrics.keys())
+        training_errors = [metrics["validation_error"] for metrics in self.k_metrics.values()]
+        testing_errors = [metrics.get("test_error", 0) for metrics in self.k_metrics.values()]
+
+        plt.figure(figsize=(10, 5))
+        plt.plot(k_values, training_errors, label='Training Error')
+        plt.plot(k_values, testing_errors, label='Testing Error')
+        plt.xlabel('k')
+        plt.ylabel('Error')
+        plt.legend()
+        plt.grid(True)
+        plt.title('Error Rate Change with Different K Values')
+        error_figure = plt.gcf()
+
+        # Accuracy figure
+        training_accuracies = [1 - error for error in training_errors]
+        testing_accuracies = [1 - error for error in testing_errors]
+        
+        plt.figure(figsize=(10, 5))
+        plt.plot(k_values, training_accuracies, label='Training Accuracy')
+        plt.plot(k_values, testing_accuracies, label='Testing Accuracy')
+        plt.xlabel('k')
+        plt.ylabel('Accuracy')
+        plt.legend()
+        plt.grid(True)
+        plt.title('Accuracy Change with Different K Values')
+        accuracy_figure = plt.gcf()
+        return cm, error_figure, accuracy_figure
+
+
+    def print_results(self, evaluation_results):
         """
-        Write confusion matrix to report.txt
+        Print confusion matrix, error rates, and accuracy rates for each k value
         """
-        self.logger.info("Reporting model results to report.txt.")
-        # Implement report writing functionality here
+        class_labels = [str(i) for i in range(10)]
+
+        self.logger.info(f"Printing model results.")
+        print(f"Printing model results.")
+
+        cm, error_figure, accuracy_figure = evaluation_results
+
+
+        self.logger.info("Confusion Matrix:")
+        print("Confusion Matrix:")
+        cm_header = "\t" + "\t".join([f"Predicted {label}" for label in class_labels])
+        cm_rows = []
+        for i, row in enumerate(cm):
+            cm_rows.append(f"Actual {class_labels[i]}\t" + "\t".join([str(cell) for cell in row]))
+        cm_str = cm_header + "\n" + "\n".join(cm_rows)
+        self.logger.info(f"\n{cm_str}\n")
+        print(f"\n{cm_str}\n")
+
+
+        for k, metrics in self.k_metrics.items():
+            self.logger.info(f"Results for k={k}:")
+            print(f"Results for k={k}:")
+            self.logger.info(f"Validation Error: {metrics['validation_error']}")
+            print(f"Validation Error: {metrics['validation_error']}")
+            if 'test_error' in metrics:
+                self.logger.info(f"Testing Error: {metrics['test_error']}")
+                print(f"Testing Error: {metrics['test_error']}")
+            self.logger.info(f"Validation Accuracy: {1 - metrics['validation_error']}")
+            print(f"Validation Accuracy: {1 - metrics['validation_error']}")
+            if 'test_error' in metrics:
+                self.logger.info(f"Testing Accuracy: {1 - metrics['test_error']}")
+                print(f"Testing Accuracy: {1 - metrics['test_error']}")
+            self.logger.info("-----")
+            print("-----")
+        
+        #error_figure.show()
+        #accuracy_figure.show()
+
+    def report_results(self, evaluation_results):
+        self.logger.info("Reporting model results.")
+        print("Reporting model results.")
+
+        cm, error_figure, accuracy_figure = evaluation_results
+
+        error_figure.savefig('error_figure.png')
+        accuracy_figure.savefig('accuracy_figure.png')
+
+        class_labels = [str(i) for i in range(10)]
+        cm_header = "\t" + "\t".join([f"Predicted {label}" for label in class_labels])
+        cm_rows = []
+        for i, row in enumerate(cm):
+            cm_rows.append(f"Actual {class_labels[i]}\t" + "\t".join([str(cell) for cell in row]))
+        cm_str = cm_header + "\n" + "\n".join(cm_rows)
+
+        with open("reports.txt", 'w') as f:
+            f.write("Confusion Matrix:\n")
+            f.write(cm_str)
+            f.write("\n\n")
+
+            for k, metrics in self.k_metrics.items():
+                f.write(f"Results for k={k}:\n")
+                f.write(f"Validation Error: {metrics['validation_error']}\n")
+                if 'test_error' in metrics:
+                    f.write(f"Testing Error: {metrics['test_error']}\n")
+                f.write(f"Validation Accuracy: {1 - metrics['validation_error']}\n")
+                if 'test_error' in metrics:
+                    f.write(f"Testing Accuracy: {1 - metrics['test_error']}\n")
+                f.write("-----\n")
+
+        self.logger.info("Added to reports")
+        print("Added to reports")
+
