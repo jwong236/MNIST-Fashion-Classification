@@ -74,8 +74,8 @@ class Driver:
             confusion_matrix = knn_model.evaluate_model(test_results)
 
             # Print and report
-            self.print_results(confusion_matrix)
-            self.report_results(confusion_matrix, self.report_file_path)
+            knn_model.print_results(confusion_matrix)
+            knn_model.report_results(confusion_matrix, self.report_file_path)
             
         except Exception as e:
             self.logger.warning(f"KNNModel not available yet. Error: {str(e)}")
@@ -104,8 +104,8 @@ class Driver:
             confusion_matrix = lr_model.evaluate_model(test_results)
 
             # Print and report
-            self.print_results(confusion_matrix)
-            self.report_results(confusion_matrix, self.report_file_path)
+            lr_model.print_results(confusion_matrix)
+            lr_model.report_results(confusion_matrix, self.report_file_path)
             
         except Exception as e:
             self.logger.warning(f"LogisticRegressionModel not available yet. Error: {str(e)}")
@@ -134,8 +134,8 @@ class Driver:
             confusion_matrix = nn_model.evaluate_model(test_results)
 
             # Print and report
-            self.print_results(confusion_matrix)
-            self.report_results(confusion_matrix, self.report_file_path)
+            nn_model.print_results(confusion_matrix)
+            nn_model.report_results(confusion_matrix, self.report_file_path)
             
         except Exception as e:
             self.logger.warning(f"NeuralNetworkModel not available yet. Error: {str(e)}")
