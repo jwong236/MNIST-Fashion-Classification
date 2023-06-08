@@ -36,15 +36,15 @@ class AbstractBaseModel(ABC):
         pass
 
     @abstractmethod
-    def print_results(self):
+    def print_results(self, evaluation):
         """
-        Print confusion matrix
+        Print result of evaluate_model
         """
         pass
 
     @abstractmethod
-    def report_results(self):
+    def report_results(self, evaluation):
         """
-        Write confusion matrix to report.txt
+        Write result of evaluate_model to report file
         """
         pass
