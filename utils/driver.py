@@ -15,8 +15,11 @@ class Driver:
         self.config = configparser.ConfigParser()
         self.config.read('configs.ini')
 
-        # Get file path
-        self.report_path = self.config.get('DEFAULT', 'report_path')
+        # Get file paths
+        self.report_file_path = self.config.get('DEFAULT', 'report_path')
+        self.knn_report_path = self.config.get('KNN', 'report_path')
+        self.lr_report_path = self.config.get('LOGISTIC_REGRESSION', 'report_path')
+        self.nn_report_path = self.config.get('NEURAL_NETWORK', 'report_path')
         
         # Initialize data
         self.training_data = (None, None)
@@ -75,7 +78,7 @@ class Driver:
 
             # Print and report
             knn_model.print_results(confusion_matrix)
-            knn_model.report_results(confusion_matrix, self.report_file_path)
+            knn_model.report_results(confusion_matrix, self.knn_report_path)
             
         except Exception as e:
             self.logger.warning(f"KNNModel not available yet. Error: {str(e)}")
@@ -105,7 +108,7 @@ class Driver:
 
             # Print and report
             lr_model.print_results(confusion_matrix)
-            lr_model.report_results(confusion_matrix, self.report_file_path)
+            lr_model.report_results(confusion_matrix, self.lr_report_path)
             
         except Exception as e:
             self.logger.warning(f"LogisticRegressionModel not available yet. Error: {str(e)}")
@@ -135,7 +138,7 @@ class Driver:
 
             # Print and report
             nn_model.print_results(confusion_matrix)
-            nn_model.report_results(confusion_matrix, self.report_file_path)
+            nn_model.report_results(confusion_matrix, self.nn_report_path)
             
         except Exception as e:
             self.logger.warning(f"NeuralNetworkModel not available yet. Error: {str(e)}")
