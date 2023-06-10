@@ -170,14 +170,14 @@ class KNNModel(AbstractBaseModel):
         #error_figure.show()
         #accuracy_figure.show()
 
-    def report_results(self, evaluation_results):
+    def report_results(self, evaluation_results, report_path):
         self.logger.info("Reporting model results.")
         print("Reporting model results.")
 
         cm, error_figure, accuracy_figure = evaluation_results
 
-        error_figure.savefig('error_figure.png')
-        accuracy_figure.savefig('accuracy_figure.png')
+        error_figure.savefig('knn_error_figure.png')
+        accuracy_figure.savefig('knn_accuracy_figure.png')
 
         class_labels = [str(i) for i in range(10)]
         cm_header = "\t" + "\t".join([f"Predicted {label}" for label in class_labels])
@@ -186,7 +186,7 @@ class KNNModel(AbstractBaseModel):
             cm_rows.append(f"Actual {class_labels[i]}\t" + "\t".join([str(cell) for cell in row]))
         cm_str = cm_header + "\n" + "\n".join(cm_rows)
 
-        with open("reports.txt", 'w') as f:
+        with open(report_path, 'w') as f:
             f.write("Confusion Matrix:\n")
             f.write(cm_str)
             f.write("\n\n")
