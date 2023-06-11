@@ -1,5 +1,5 @@
-from typing import Tuple
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
 class Preprocessor:
     def __init__(self, config, logger):
@@ -11,7 +11,7 @@ class Preprocessor:
         self.training_split = config.getfloat('PREPROCESSING', 'training_split')
         self.validation_split = config.getfloat('PREPROCESSING', 'validation_split')
 
-    def preprocess(self, X, y) -> Tuple:
+    def preprocess(self, X, y):
         """
         This function will preprocess the data.
         """
@@ -37,7 +37,7 @@ class Preprocessor:
         self.logger.info(f"Last datapoint after normalizing (sample): \n(Note: only prints center 18x18)\n{X[-1, 5:23, 5:23]}\n")
         return X, y
 
-    def split_data(self, X_training_data, y_training_data) -> Tuple:
+    def split_data(self, X_training_data, y_training_data):
         """
         This function will split the data into training and validation sets.
         """
@@ -49,3 +49,20 @@ class Preprocessor:
         self.logger.info(f"The training data has been split, with {self.training_split * 100}% allocated for training and {self.validation_split * 100}% allocated for validation.\n")
         print(f"The training data has been split, with {self.training_split * 100}% allocated for training and {self.validation_split * 100}% allocated for validation.\n")
         return (train_X, train_y), (val_X, val_y)
+    
+    def visualize_data(self, X, y):
+        """
+        This function will visualize the first 9 datapoints. Function is taken from Professor K's homework 2.
+        """
+        plt.rcParams['image.interpolation'] = 'nearest'
+        plt.rcParams['image.cmap'] = 'gray'
+
+        figure, axes = plt.subplots(3, 3, figsize=(6, 6))
+        for i in range(9):
+            row = i // 3
+            col = i % 3
+            axes[row, col].imshow(X[i].reshape(28,28))
+            axes[row, col].set_title("Label: " + str(y[i]))
+        plt.tight_layout()
+        plt.savefig("data_visualization.png")
+

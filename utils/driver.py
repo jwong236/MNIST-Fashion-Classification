@@ -43,6 +43,11 @@ class Driver:
         print(f"Preprocessing training and validation data...")
         training_and_validation_data = preprocessor.preprocess(original_X_training_data, original_y_training_data)
 
+        # Visualize data
+        self.logger.info(f"Visualizing data...")
+        print(f"Visualizing data...")
+        preprocessor.visualize_data(training_and_validation_data[0], training_and_validation_data[1])
+
         # Preprocess testing data
         self.logger.info(f"Preprocessing testing data...")
         print(f"Preprocessing testing data...")
